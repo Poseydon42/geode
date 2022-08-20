@@ -1,0 +1,6 @@
+# Build directories
+Build/
+
+# IDE stuff
+.idea/
+

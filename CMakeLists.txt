@@ -12,3 +12,10 @@ set(SOURCES
 
 add_executable(Geode ${SOURCES})
 
+# Enable all warnings and treat them as errors
+if(MSVC)
+	target_compile_options(Geode PRIVATE /W4 /WX)
+else()
+	target_compile_options(Geode PRIVATE -Wall -Wextra -Wpedantic -Werror)
+endif()
+

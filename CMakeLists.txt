@@ -7,7 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS FALSE)
 
 set(SOURCES
-    Source/main.cpp
+        Source/main.cpp
+        Source/TGAWriter.cpp
+        Source/TGAWriter.h
 )
 
 add_executable(Geode ${SOURCES})

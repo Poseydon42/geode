@@ -11,6 +11,8 @@ set(CMAKE_CXX_EXTENSIONS FALSE)
 set(SOURCES
 		Source/main.cpp
 		Source/Ray.h
+		Source/Surface.cpp
+		Source/Surface.h
 		Source/TGAWriter.cpp
 		Source/TGAWriter.h
 )

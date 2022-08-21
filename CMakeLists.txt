@@ -10,6 +10,7 @@ set(CMAKE_CXX_EXTENSIONS FALSE)
 
 set(SOURCES
 		Source/main.cpp
+		Source/Material.h
 		Source/Ray.h
 		Source/Surface.cpp
 		Source/Surface.h

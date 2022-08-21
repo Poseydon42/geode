@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstring>
 #include <glm/glm.hpp>
 #include <iostream>
@@ -34,6 +35,8 @@ namespace Geode
 
         auto* Image = malloc(Width * Height * BytesPerPixel);
 
+        auto StartTimePoint = std::chrono::high_resolution_clock::now();
+
         // We assume that camera is located at (0;0;0) and facing the -Z direction
         // The coordinate system is right-handed, with X pointing to the right, Y upwards and Z from the screen to the
         // viewer
@@ -67,6 +70,12 @@ namespace Geode
                 *Pixel++ = ComposeColor(PixelColor);
             }
         }
+
+        auto EndTimePoint = std::chrono::high_resolution_clock::now();
+        auto Duration = EndTimePoint - StartTimePoint;
+
+        std::cout << "Rendering finished in " << duration_cast<std::chrono::milliseconds>(Duration).count() << " ms"
+                  << std::endl;
 
         if (!WriteTGA("result.tga", Width, Height, Image))
         {

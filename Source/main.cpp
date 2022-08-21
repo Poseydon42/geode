@@ -31,7 +31,7 @@ namespace Geode
         constexpr size_t BytesPerPixel = 4;
 
         Material Material = {{0.5f, 0.7f, 1.0f}};
-        Sphere Sphere = {{0.0f, 0.0f, -5.0f}, 1.0f, 0};
+        Sphere Sphere = {{0.0f, 1.0f, -5.0f}, 1.0f, 0};
 
         auto* Image = malloc(Width * Height * BytesPerPixel);
 
@@ -49,8 +49,10 @@ namespace Geode
             for (uint16_t X = 0; X < Width; X++)
             {
                 // Transforming X and Y into [-1;1] range
+                // NOTE: flipping sign of the Y coordinate because the world Y coordinate is from the bottom to the top,
+                // but the pixel order in the image is top to bottom
                 float RealX = (static_cast<float>(X) + 0.5f) / static_cast<float>(Width) * 2.0f - 1.0f;
-                float RealY = (static_cast<float>(Y) + 0.5f) / static_cast<float>(Height) * 2.0f - 1.0f;
+                float RealY = -((static_cast<float>(Y) + 0.5f) / static_cast<float>(Height) * 2.0f - 1.0f);
 
                 glm::vec3 PixelColor = BackgroundColor;
 

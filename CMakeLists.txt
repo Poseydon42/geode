@@ -9,9 +9,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS FALSE)
 
 set(SOURCES
+		Source/Camera.h
 		Source/main.cpp
 		Source/Material.h
 		Source/Ray.h
+		Source/Renderer.cpp
+		Source/Renderer.h
 		Source/Surface.cpp
 		Source/Surface.h
 		Source/TGAWriter.cpp

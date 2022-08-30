@@ -16,6 +16,8 @@ set(SOURCES
 		Source/Surface.h
 		Source/TGAWriter.cpp
 		Source/TGAWriter.h
+		Source/World.cpp
+		Source/World.h
 )
 
 add_executable(Geode ${SOURCES})

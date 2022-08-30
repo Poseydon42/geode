@@ -7,6 +7,7 @@
 #include "Ray.h"
 #include "Surface.h"
 #include "TGAWriter.h"
+#include "World.h"
 
 namespace Geode
 {
@@ -30,8 +31,12 @@ namespace Geode
         constexpr uint16_t Height = 1024;
         constexpr size_t BytesPerPixel = 4;
 
-        Material Material = {{0.5f, 0.7f, 1.0f}};
-        Sphere Sphere = {{0.0f, 1.0f, -5.0f}, 1.0f, 0};
+        Material Material1 = {{0.5f, 0.7f, 1.0f}};
+        Material Material2 = {{0.5f, 0.0f, 1.0f}};
+        Sphere Sphere1 = {{0.0f, 1.0f, -5.0f}, 1.0f, 0};
+        Sphere Sphere2 = {{2.0f, 1.5f, -5.0f}, 1.0f, 1};
+
+        World World = {{Material1, Material2}, {Sphere1, Sphere2}};
 
         auto* Image = malloc(Width * Height * BytesPerPixel);
 
@@ -61,12 +66,9 @@ namespace Geode
                 Ray.Direction = glm::normalize(glm::vec3(RealX, RealY, ImagePlaneZ));
 
                 RayHit PossibleHit = {};
-                if (TryIntersect(Sphere, Ray, PossibleHit))
+                if (TryIntersect(World, Ray, PossibleHit))
                 {
-                    if (PossibleHit.MaterialIndex == 0)
-                    {
-                        PixelColor = Material.Color;
-                    }
+                    PixelColor = World.Materials[PossibleHit.MaterialIndex].Color;
                 }
 
                 *Pixel++ = ComposeColor(PixelColor);

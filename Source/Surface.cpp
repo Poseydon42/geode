@@ -39,6 +39,7 @@ namespace Geode
         if (T < 0.0f) // If T2 is behind the ray as well then report that the ray does not intersect the sphere
             return false;
 
+        HitInfo.Distance = T;
         HitInfo.Position = Ray.Origin + Ray.Direction * T;
         HitInfo.Normal = glm::normalize(HitInfo.Position - Sphere.Position);
         HitInfo.MaterialIndex = Sphere.MaterialIndex;

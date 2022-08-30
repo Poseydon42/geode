@@ -12,6 +12,7 @@ namespace Geode
 
     struct RayHit
     {
+        float Distance;
         glm::vec3 Position;
         glm::vec3 Normal;
         size_t MaterialIndex;

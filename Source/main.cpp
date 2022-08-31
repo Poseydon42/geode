@@ -28,7 +28,7 @@ namespace Geode
 
         auto* Image = malloc(Width * Height * BytesPerPixel);
 
-        Film Target = { Width, Height, 1, Image };
+        Film Target = { Width, Height, 4, Image };
         Camera Camera = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, glm::radians(45.0)};
 
         auto StartTimePoint = std::chrono::high_resolution_clock::now();

@@ -1,7 +1,6 @@
 #include "Renderer.h"
 
 #include <glm/glm.hpp>
-#include <glm/ext.hpp>
 
 #include "Camera.h"
 #include "Material.h"
@@ -26,7 +25,7 @@ namespace Geode
 
     void Render(const Film& Film, const Camera& Camera, const World& World)
     {
-        static constexpr glm::vec3 BackgroundColor{0.0f, 0.0f, 0.0f};
+        static constexpr glm::vec3 BackgroundColor{0.3};
 
         float AspectRatio = static_cast<float>(Film.Width) / static_cast<float>(Film.Height);
         float HalfViewportHeight = glm::tan(Camera.VerticalFOV / 2.0f);
@@ -39,32 +38,48 @@ namespace Geode
         Right *= AspectRatio * HalfViewportHeight;
         Up *= HalfViewportHeight;
 
+        float SubPixelSampleImpact = 1.0f / static_cast<float>(Film.SamplesPerPixelSide * Film.SamplesPerPixelSide);
+        uint32_t SamplesOnXAxis = Film.Width * Film.SamplesPerPixelSide;
+        uint32_t SamplesOnYAxis = Film.Height * Film.SamplesPerPixelSide;
+
         auto* Pixel = static_cast<uint32_t*>(Film.Memory);
-        for (uint16_t Y = 0; Y < Film.Height; Y++)
+        for (uint32_t PixelY = 0; PixelY < Film.Height; PixelY++)
         {
-            for (uint16_t X = 0; X < Film.Width; X++)
+            for (uint32_t PixelX = 0; PixelX < Film.Width; PixelX++)
             {
-                // Transforming X and Y into [-1;1] range
-                // NOTE: flipping sign of the Y coordinate because the world Y coordinate is from the bottom to the top,
-                // but the pixel order in the image is top to bottom
-                float RealX = (static_cast<float>(X) + 0.5f) / static_cast<float>(Film.Width) * 2.0f - 1.0f;
-                float RealY = -((static_cast<float>(Y) + 0.5f) / static_cast<float>(Film.Height) * 2.0f - 1.0f);
-
-                glm::vec3 PixelColor = BackgroundColor;
-
-                glm::vec3 PixelPosition = Camera.Position + Camera.Direction + RealX * Right + RealY * Up;
-
-                Ray Ray = {};
-                Ray.Origin = Camera.Position;
-                Ray.Direction = glm::normalize(PixelPosition - Camera.Position);
-
-                RayHit PossibleHit = {};
-                if (TryIntersect(World, Ray, PossibleHit))
+                glm::vec3 AccumulatedColor = {};
+                for (uint32_t SubPixelX = 0; SubPixelX < Film.SamplesPerPixelSide; SubPixelX++)
                 {
-                    PixelColor = World.Materials[PossibleHit.MaterialIndex].Color;
+                    for (uint32_t SubPixelY = 0; SubPixelY < Film.SamplesPerPixelSide; SubPixelY++)
+                    {
+                        uint32_t SampleX = PixelX * Film.SamplesPerPixelSide + SubPixelX;
+                        uint32_t SampleY = PixelY * Film.SamplesPerPixelSide + SubPixelY;
+
+                        // Transforming X and Y into [-1;1] range
+                        // NOTE: flipping sign of the Y coordinate because the world Y coordinate is from the bottom to the top,
+                        // but the pixel order in the image is top to bottom
+                        float RealX = (static_cast<float>(SampleX) + 0.5f) / static_cast<float>(SamplesOnXAxis) * 2.0f - 1.0f;
+                        float RealY = -((static_cast<float>(SampleY) + 0.5f) / static_cast<float>(SamplesOnYAxis) * 2.0f - 1.0f);
+
+                        glm::vec3 PixelColor = BackgroundColor;
+
+                        glm::vec3 PixelPosition = Camera.Position + Camera.Direction + RealX * Right + RealY * Up;
+
+                        Ray Ray = {};
+                        Ray.Origin = Camera.Position;
+                        Ray.Direction = glm::normalize(PixelPosition - Camera.Position);
+
+                        RayHit PossibleHit = {};
+                        if (TryIntersect(World, Ray, PossibleHit))
+                        {
+                            PixelColor = World.Materials[PossibleHit.MaterialIndex].Color;
+                        }
+
+                        AccumulatedColor += SubPixelSampleImpact * PixelColor;
+                    }
                 }
 
-                *Pixel++ = ComposeColor(PixelColor);
+                *Pixel++ = ComposeColor(AccumulatedColor);
             }
         }
     }

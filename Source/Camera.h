@@ -8,7 +8,7 @@ namespace Geode
     {
         uint32_t Width;
         uint32_t Height;
-        uint32_t SamplesPerPixel;
+        uint32_t SamplesPerPixelSide;
         void* Memory;
     };
 

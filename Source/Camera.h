@@ -11,4 +11,12 @@ namespace Geode
         uint32_t SamplesPerPixel;
         void* Memory;
     };
+
+    struct Camera
+    {
+        glm::vec3 Position;
+        glm::vec3 Direction;
+        glm::vec3 Up;
+        float VerticalFOV; // In radians
+    };
 }

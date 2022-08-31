@@ -15,24 +15,25 @@ namespace Geode
 {
     int DeferredMain(int, char**)
     {
-        constexpr uint16_t Width = 1024;
-        constexpr uint16_t Height = 1024;
+        constexpr uint16_t Width = 1920;
+        constexpr uint16_t Height = 1080;
         constexpr size_t BytesPerPixel = 4;
 
         Material Material1 = {{0.5f, 0.7f, 1.0f}};
         Material Material2 = {{0.5f, 0.0f, 1.0f}};
         Sphere Sphere1 = {{0.0f, 1.0f, -5.0f}, 1.0f, 0};
-        Sphere Sphere2 = {{3.0f, -3.5f, -5.0f}, 1.0f, 1};
+        Sphere Sphere2 = {{1.0f, -0.5f, -5.0f}, 0.4f, 1};
 
         World World = {{Material1, Material2}, {Sphere1, Sphere2}};
 
         auto* Image = malloc(Width * Height * BytesPerPixel);
 
         Film Target = { Width, Height, 1, Image };
+        Camera Camera = {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, -1.0f}, {0.0f, 1.0f, 0.0f}, glm::radians(45.0)};
 
         auto StartTimePoint = std::chrono::high_resolution_clock::now();
 
-        Render(Target, World);
+        Render(Target, Camera, World);
 
         auto EndTimePoint = std::chrono::high_resolution_clock::now();
         auto Duration = EndTimePoint - StartTimePoint;

@@ -59,8 +59,8 @@ namespace Geode
         float AspectRatio = static_cast<float>(Film.Width) / static_cast<float>(Film.Height);
         float HalfViewportHeight = glm::tan(Camera.VerticalFOV / 2.0f);
 
-        glm::vec3 Right = glm::normalize(glm::cross(Camera.Up, Camera.Direction));
-        glm::vec3 Up = glm::cross(Camera.Direction, Right);
+        glm::vec3 Right = glm::normalize(glm::cross(Camera.Direction, Camera.Up));
+        glm::vec3 Up = glm::cross(Right, Camera.Direction);
 
         // NOTE : these vectors are now non-normalized, but when we multiply them by pixel coordinates in [-1;1] space
         //        we will not have to additionally multiply them with aspect ratio and viewport height

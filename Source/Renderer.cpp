@@ -1,6 +1,9 @@
 #include "Renderer.h"
 
+#include <algorithm>
 #include <glm/glm.hpp>
+#include <iostream>
+#include <thread>
 
 #include "Camera.h"
 #include "Material.h"
@@ -23,9 +26,35 @@ namespace Geode
         return Result;
     }
 
-    void Render(const Film& Film, const Camera& Camera, const World& World)
+    void WorkerRenderThread(WorkQueue* WorkQueue)
+    {
+        while (true)
+        {
+            WorkQueue->Lock.lock();
+            const auto* Tile = WorkQueue->First;
+            if (Tile)
+            {
+                WorkQueue->First = Tile->Next;
+            }
+            WorkQueue->Lock.unlock();
+
+            if (!Tile)
+                return;
+
+            RenderSingleTile(*Tile);
+
+            delete Tile;
+        }
+    }
+
+    void RenderSingleTile(const RenderTile& Tile)
     {
         static constexpr glm::vec3 BackgroundColor{0.3};
+        static constexpr size_t BytesPerPixel = 4;
+
+        const auto& Film = *Tile.Film;
+        const auto& Camera = *Tile.Camera;
+        const auto& World = *Tile.World;
 
         float AspectRatio = static_cast<float>(Film.Width) / static_cast<float>(Film.Height);
         float HalfViewportHeight = glm::tan(Camera.VerticalFOV / 2.0f);
@@ -42,11 +71,12 @@ namespace Geode
         uint32_t SamplesOnXAxis = Film.Width * Film.SamplesPerPixelSide;
         uint32_t SamplesOnYAxis = Film.Height * Film.SamplesPerPixelSide;
 
-        auto* Pixel = static_cast<uint32_t*>(Film.Memory);
-        for (uint32_t PixelY = 0; PixelY < Film.Height; PixelY++)
+        for (uint32_t PixelY = Tile.StartY; PixelY < Tile.StartY + Tile.Height; PixelY++)
         {
-            for (uint32_t PixelX = 0; PixelX < Film.Width; PixelX++)
+            for (uint32_t PixelX = Tile.StartX; PixelX < Tile.StartX + Tile.Width; PixelX++)
             {
+                auto* Pixel = reinterpret_cast<uint32_t*>(reinterpret_cast<uint8_t*>(Film.Memory) +
+                                                          (PixelY * Film.Width + PixelX) * BytesPerPixel);
                 glm::vec3 AccumulatedColor = {};
                 for (uint32_t SubPixelX = 0; SubPixelX < Film.SamplesPerPixelSide; SubPixelX++)
                 {
@@ -79,8 +109,53 @@ namespace Geode
                     }
                 }
 
-                *Pixel++ = ComposeColor(AccumulatedColor);
+                *Pixel = ComposeColor(AccumulatedColor);
             }
+        }
+    }
+
+    void Render(const Film& Film, const Camera& Camera, const World& World)
+    {
+        static constexpr uint32_t MaxTileDim = 32;
+
+        WorkQueue Queue = {};
+        const RenderTile* Last = nullptr;
+        for (uint32_t X = 0; X < Film.Width; X += MaxTileDim)
+        {
+            for (uint32_t Y = 0; Y < Film.Height; Y += MaxTileDim)
+            {
+                auto* Tile = new RenderTile;
+
+                Tile->StartX = X;
+                Tile->StartY = Y;
+                Tile->Width = std::min(Film.Width - X, MaxTileDim);
+                Tile->Height = std::min(Film.Height - Y, MaxTileDim);
+                Tile->Film = &Film;
+                Tile->Camera = &Camera;
+                Tile->World = &World;
+
+                Tile->Next = Last;
+                Last = Tile;
+            }
+        }
+        // NOTE : technically we inverted the list order here, but it doesn't really matter since we don't see the
+        // individual tiles being rendered live
+        Queue.First = Last;
+
+        size_t NumberOfHardwareThreads = std::thread::hardware_concurrency();
+        std::cout << "Starting " << NumberOfHardwareThreads << " worker rendering threads..." << std::endl;
+        std::vector<std::thread> Threads;
+        for (size_t ThreadIndex = 0; ThreadIndex < NumberOfHardwareThreads; ThreadIndex++)
+        {
+            Threads.emplace_back([&](){
+                WorkerRenderThread(&Queue);
+            });
+        }
+
+        // Wait for every thread to finish
+        for (auto& Thread : Threads)
+        {
+            Thread.join();
         }
     }
 }

@@ -49,7 +49,7 @@ namespace Geode
 
     void RenderSingleTile(const RenderTile& Tile)
     {
-        static constexpr glm::vec3 BackgroundColor{0.3};
+        static constexpr glm::vec3 SkyColor{0.51f, 0.79f, 0.96f};
         static constexpr size_t BytesPerPixel = 4;
 
         const auto& Film = *Tile.Film;
@@ -91,7 +91,7 @@ namespace Geode
                         float RealX = (static_cast<float>(SampleX) + 0.5f) / static_cast<float>(SamplesOnXAxis) * 2.0f - 1.0f;
                         float RealY = -((static_cast<float>(SampleY) + 0.5f) / static_cast<float>(SamplesOnYAxis) * 2.0f - 1.0f);
 
-                        glm::vec3 PixelColor = BackgroundColor;
+                        glm::vec3 PixelColor = SkyColor;
 
                         glm::vec3 PixelPosition = Camera.Position + Camera.Direction + RealX * Right + RealY * Up;
 

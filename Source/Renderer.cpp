@@ -47,6 +47,16 @@ namespace Geode
         }
     }
 
+    glm::vec3 RenderSingleRayFromCamera(const World& World, const Ray& Ray, const glm::vec3& BackgroundColor)
+    {
+        RayHit PossibleHit = {};
+        if (TryIntersect(World, Ray, PossibleHit))
+        {
+            return World.Materials[PossibleHit.MaterialIndex].Color;
+        }
+        return BackgroundColor;
+    }
+
     void RenderSingleTile(const RenderTile& Tile)
     {
         static constexpr glm::vec3 SkyColor{0.51f, 0.79f, 0.96f};
@@ -91,21 +101,13 @@ namespace Geode
                         float RealX = (static_cast<float>(SampleX) + 0.5f) / static_cast<float>(SamplesOnXAxis) * 2.0f - 1.0f;
                         float RealY = -((static_cast<float>(SampleY) + 0.5f) / static_cast<float>(SamplesOnYAxis) * 2.0f - 1.0f);
 
-                        glm::vec3 PixelColor = SkyColor;
-
                         glm::vec3 PixelPosition = Camera.Position + Camera.Direction + RealX * Right + RealY * Up;
 
                         Ray Ray = {};
                         Ray.Origin = Camera.Position;
                         Ray.Direction = glm::normalize(PixelPosition - Camera.Position);
 
-                        RayHit PossibleHit = {};
-                        if (TryIntersect(World, Ray, PossibleHit))
-                        {
-                            PixelColor = World.Materials[PossibleHit.MaterialIndex].Color;
-                        }
-
-                        AccumulatedColor += SubPixelSampleImpact * PixelColor;
+                        AccumulatedColor += SubPixelSampleImpact * RenderSingleRayFromCamera(World, Ray, SkyColor);
                     }
                 }
 

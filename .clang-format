@@ -11,4 +11,5 @@ ColumnLimit: '120'
 ConstructorInitializerAllOnOneLineOrOnePerLine: 'true'
 NamespaceIndentation: 'All'
 PointerAlignment: Left
+AccessModifierOffset: -4
 ...
